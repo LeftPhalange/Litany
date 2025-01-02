@@ -1,0 +1,61 @@
+{
+    "user": {
+        "id": "...",
+        "displayName": "User",
+        "emailAddress": "test@test.com",
+        "tasks": [
+            {
+                "id": "...",
+                "title": "Create a full-stack trivia game",
+                "priority": "high",
+                "subtasks": [
+                    {
+                        "id": "...",
+                        "parentTaskId": "...",
+                        "title": "Create wireframes on Figma",
+                        "type": "manual",
+                        "state": "complete"
+                    },
+                    {
+                        "id": "...",
+                        "title": "Create database schema",
+                        "parentTaskId": "...",
+                        "type": "timed",
+                        "state": "incomplete",
+                        "details": {
+                            "durationMins": 60
+                        }
+                    },
+                    {
+                        "id": "...",
+                        "title": "Perform rest of items",
+                        "parentTaskId": "...",
+                        "type": "sequence",
+                        "state": "incomplete",
+                        "details": {
+                            "subtasks": [
+                                {
+                                    "id": "...",
+                                    "parentTaskId": "...",
+                                    "title": "Create wireframes on Figma",
+                                    "type": "manual",
+                                    "state": "complete"
+                                },
+                                {
+                                    "id": "...",
+                                    "title": "Create database schema",
+                                    "parentTaskId": "...",
+                                    "type": "timed",
+                                    "state": "incomplete",
+                                    "details": {
+                                        "durationMins": 60
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
