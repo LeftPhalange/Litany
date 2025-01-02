@@ -11,6 +11,8 @@ export default function AddTask({ addTask, closeDialog, open }: {
     open: boolean
 }) {
     const title = "Add task"; // dialog title
+    const maxTitleLength = 64; // max length for title
+    const maxDescriptionLength = 128; // max length for description
 
     /* States for each field */
     const [taskTitle, setTaskTitle] = useState("");
@@ -26,11 +28,11 @@ export default function AddTask({ addTask, closeDialog, open }: {
             {statusMessage.length > 0 ? <span className="text-sm">⚠️ {statusMessage}</span> : <></>}
             <Field className="flex flex-col">
                 <Label className="block text-xs font-medium">Task title</Label>
-                <Input onChange={(e) => setTaskTitle(e.target.value)} value={taskTitle} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-title" />
+                <Input maxLength={maxTitleLength} onChange={(e) => setTaskTitle(e.target.value)} value={taskTitle} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-title" />
             </Field>
             <Field className="flex flex-col">
                 <Label className="block text-xs font-medium">Task description</Label>
-                <Textarea onChange={(e) => setTaskDescription(e.target.value)} value={taskDescription} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-title" />
+                <Textarea maxLength={maxDescriptionLength} onChange={(e) => setTaskDescription(e.target.value)} value={taskDescription} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-title" />
             </Field>
             <Field className="flex flex-col space-y-2">
                 <Label className="block text-xs font-medium">Priority</Label>
@@ -42,12 +44,16 @@ export default function AddTask({ addTask, closeDialog, open }: {
             </Field>
             <div className="flex flex-row space-x-2 pt-2 w-full">
                 <Button onClick={() => {
-                    if (taskTitle.length > 0) {
-                        setStatusMessage("");
+                    setStatusMessage("");
+                    if (taskTitle.length > maxTitleLength) {
+                        setStatusMessage("Task title is too long (more than 64 characters). Please try again.");
+                    } else if (taskTitle.trim().length == 0) {
+                        setStatusMessage("Task must have a title. Try again.");
+                    } else if (taskDescription.length > maxDescriptionLength) {
+                        setStatusMessage("Task description is too long (more than 128 characters). Please try again.");
+                    } else {
                         addTask(taskTitle, taskDescription, taskPriority);
                         closeDialog();
-                    } else {
-                        setStatusMessage("Task must have a title. Try again.");
                     }
                 }} className="bg-neutral-800 hover:bg-neutral-700 border border-1 border-neutral-600 rounded-lg py-2 px-8 font-semibold text-xs">Add</Button>
                 <Button onClick={() => closeDialog()} className="bg-neutral-900 hover:bg-neutral-800 border border-1 border-neutral-600 rounded-lg py-2 px-8 font-semibold text-xs">Cancel</Button>
