@@ -5,6 +5,7 @@ import { useState } from "react";
 
 export default function AddSubtask({ onClick, closeDialog, open }: { onClick: (subtaskTitle: string, subtaskType: SubtaskType) => void, closeDialog: () => void, open: boolean }) {
     const title = "Create a new subtask"; // dialog title
+    const maxTitleLength = 64;
 
     /* States for each field */
     const [subtaskTitle, setSubtaskTitle] = useState("");
@@ -15,12 +16,14 @@ export default function AddSubtask({ onClick, closeDialog, open }: { onClick: (s
 
     const addSubtask = (e: React.KeyboardEvent<HTMLFieldSetElement> | null) => {
         if (e && e.key != "Enter") { return; }
-        if (subtaskTitle.length > 0) {
-            setStatusMessage("");
+        setStatusMessage("");
+        if (subtaskTitle.length > maxTitleLength) {
+            setStatusMessage("Subtask title is too long (more than 64 characters). Please try again.");
+        } else if (subtaskTitle.trim().length == 0) {
+            setStatusMessage("Subtask title cannot be empty. Please try again.");
+        } else {
             onClick(subtaskTitle, subtaskType);
             closeDialog();
-        } else {
-            setStatusMessage("Subtask must have a title. Try again.");
         }
     };
 
@@ -30,7 +33,7 @@ export default function AddSubtask({ onClick, closeDialog, open }: { onClick: (s
             {statusMessage.length > 0 ? <span className="text-sm">⚠️ {statusMessage}</span> : <></>}
             <Field className="flex flex-col">
                 <Label className="block text-xs font-medium">Subtask title</Label>
-                <Input onChange={(e) => setSubtaskTitle(e.target.value)} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-title" />
+                <Input maxLength={maxTitleLength} onChange={(e) => setSubtaskTitle(e.target.value)} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-title" />
             </Field>
             <Field className="flex flex-col space-y-2">
                 <Label className="block text-xs font-medium">Type</Label>
