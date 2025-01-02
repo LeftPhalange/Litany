@@ -151,7 +151,7 @@ export async function deleteTask(client: SupabaseClient, taskId: number): Promis
 
 export async function deleteSubtasksUnderTask(client: SupabaseClient, id: number): Promise<boolean> {
     const res = await client
-        .from("tasks")
+        .from("subtasks")
         .delete()
         .eq("parent_task_id", id);
 
