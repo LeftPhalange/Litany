@@ -1,4 +1,4 @@
-![Litany logo](public/assets/logo.svg)
+![Litany logo](public/assets/logo-readme.png)
 # Litany
 This is Litany, a productivity app designed to break down the litany of things in life into smaller steps.
 
