@@ -47,7 +47,6 @@ function TaskView({ task }: { task: Task }) {
     const [subtaskPositions, setSubtaskPositions] = useState<number[]>([]); // orders each subtask with its own index
 
     const { data, key, error, isLoading } = useTask(task.taskId, client);
-    console.log("rendering task " + task.taskId);
 
     if (!data || error || isLoading) { return (<></>) }
 
