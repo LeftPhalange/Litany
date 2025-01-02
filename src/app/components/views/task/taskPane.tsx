@@ -47,7 +47,6 @@ function TaskView({ task }: { task: Task }) {
     const [subtaskPositions, setSubtaskPositions] = useState<number[]>([]); // orders each subtask with its own index
 
     const { data, key, error, isLoading } = useTask(task.taskId, client);
-    console.log("rendering task " + task.taskId);
 
     if (!data || error || isLoading) { return (<></>) }
 
@@ -89,7 +88,7 @@ function TaskView({ task }: { task: Task }) {
         {
             text: rowsMovable ? "Done" : "Move subtasks",
             icon: (!rowsMovable ? <CgArrowsV size={16} /> : <CgCheck size={16} />),
-            disabled: !subtasksExist,
+            disabled: !subtasksExist || subtaskPositions.length == 1,
             onClick: () => {
                 // if rows are no longer movable after change state, save all row positions
                 setRowsMovable(!rowsMovable);

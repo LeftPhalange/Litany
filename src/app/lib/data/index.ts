@@ -141,7 +141,21 @@ export async function deleteSubtask(client: SupabaseClient, subtaskId: number): 
 }
 
 export async function deleteTask(client: SupabaseClient, taskId: number): Promise<boolean> {
-    return deleteFromTable(client, "tasks", taskId);
+    // delete task then associated subtasks under parent task ID
+    const [deleteTaskRes, deleteSubtasksRes] = await Promise.all([
+        deleteFromTable(client, "tasks", taskId),
+        deleteSubtasksUnderTask(client, taskId)
+    ]);
+    return deleteTaskRes && deleteSubtasksRes;
+}
+
+export async function deleteSubtasksUnderTask(client: SupabaseClient, id: number): Promise<boolean> {
+    const res = await client
+        .from("subtasks")
+        .delete()
+        .eq("parent_task_id", id);
+
+    return !res.error;
 }
 
 export async function deleteFromTable(client: SupabaseClient, tableName: string, id: number): Promise<boolean> {
