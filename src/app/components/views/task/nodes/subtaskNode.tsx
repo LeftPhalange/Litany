@@ -67,6 +67,7 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
             title: "Delete subtask",
             icon: <CgTrash size={buttonSize} />,
             onClick: (subtask: Subtask) => {
+                /* TODO: fix positioning when a subtask is being deleted!!!!! */
                 deleteSubtask(client, subtask.subtaskId).then(() => {
                     mutate(`task-${subtask.parentTaskId}`); // seal the deal, mutation was made in the task
                     toast.success("Subtask deleted.");
