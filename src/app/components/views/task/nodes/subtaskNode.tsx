@@ -1,5 +1,4 @@
 import Label from "../ui/label";
-import ProgressBar from "../ui/progressBar";
 import toast from "react-hot-toast";
 import { Subtask, SubtaskType } from "@/app/types/task";
 import { getColorByType } from "@/app/lib/style";
@@ -13,6 +12,7 @@ import { useSubtask } from "@/app/lib/hooks";
 import { DragControls } from "motion/react";
 import { MdDragHandle } from "react-icons/md";
 import { PointerEvent } from "react";
+import Timer from "@/app/components/subtask/timed/timer";
 
 const buttonSize = 20;
 
@@ -88,7 +88,7 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
         none: []
     }
 
-    function beginDrag (e: PointerEvent) {
+    function beginDrag(e: PointerEvent) {
         if (controls) { controls.start(e); }; // if not null, start drag
     }
 
@@ -112,7 +112,11 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
                             <span className="text-sm font-normal">{data!.state == "complete" ? "This subtask has been completed." : "No progress made yet."}</span>
                         </div>
                     </div>
-                    {data!.type == "timed" && <ProgressBar percentage={100} />}
+                    {data!.type == "timed" && <Timer seconds={60} elapsed={() => {
+                        updateManualSubtaskStatus(client, subtask.subtaskId, true).then(() => {
+                            mutate(key);
+                        });
+                    }} />}
                 </div>
                 <div className="flex flex-row space-x-2 w-fit h-fit outline outline-1 outline-neutral-600 bg-black/20 rounded-full p-1 mr-2">
                     {options[type].map((button, index: number) =>
