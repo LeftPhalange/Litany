@@ -4,7 +4,7 @@ export type SubtaskButton = {
     subclass: string, // subclass is within a Tailwind class that indicates color, style, etc
     title: string,
     icon: JSX.Element,
-    onClick?: (subtask: Subtask) => void | (() => void)
+    onClick?: (subtask: Subtask) => void | Promise<void> | (() => void)
 }
 
 export type SubtaskParent = {

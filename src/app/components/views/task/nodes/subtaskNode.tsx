@@ -4,7 +4,7 @@ import TimerSubview from "@/app/components/views/subtask/timed/timerSubview";
 import ManualSubview from "@/app/components/views/subtask/manual/manualSubview";
 import { getColorByType } from "@/app/lib/style";
 import { CgCheckO, CgTrash, CgPen } from "react-icons/cg";
-import { deleteSubtask, updateManualSubtaskStatus, updateSubtask } from "@/app/lib/data";
+import { deleteSubtask, getSubtasksByParent, updateManualSubtaskStatus, updateSubtask } from "@/app/lib/data";
 import { useSWRConfig } from "swr";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { useSubtask } from "@/app/lib/hooks";
@@ -28,6 +28,22 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
     if (error || subtask == undefined) { return <></> }
     if (isLoading) { return (<></>) }
 
+    const updateSubtaskPositioning = async () => {
+        /* Fix positioning before deleting subtask for good */
+        // TODO: figure out a more efficient way to do this, we're currently updating all subtasks instead of the relevant ones
+        const subtasks = await getSubtasksByParent(client, subtask.parentTaskId);
+        const filteredSubtasks = subtasks
+            .filter((current) => current.subtaskId != subtask.subtaskId)
+            .sort((a, b) => a.rowPositionIndex - b.rowPositionIndex);
+
+        // Update row position indices for each subtask under parent
+        filteredSubtasks.map(async (subtask: Subtask, index: number) => {
+            subtask.rowPositionIndex = index;
+            console.log("");
+            await updateSubtask(client, subtask);
+        });
+    };
+
     /* Button options for each type of subtask */
     const buttons = {
         check: {
@@ -46,8 +62,9 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
             subclass: "text-white",
             title: "Delete subtask",
             icon: <CgTrash size={buttonSize} />,
-            onClick: (subtask: Subtask) => {
-                deleteSubtask(client, subtask.subtaskId).then(() => {
+            onClick: async (subtask: Subtask) => {
+                await updateSubtaskPositioning();
+                await deleteSubtask(client, subtask.subtaskId).then(() => {
                     mutate(`task-${subtask.parentTaskId}`); // seal the deal, mutation was made in the task
                     toast.success("Subtask deleted.");
                 });
