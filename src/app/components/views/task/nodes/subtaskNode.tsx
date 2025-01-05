@@ -6,7 +6,7 @@ import { getColorByType } from "@/app/lib/style";
 import { CgCheckO, CgMathPlus, CgPlayButton, CgPlayPause, CgTrash, CgPen } from "react-icons/cg";
 import { RiResetRightFill } from "react-icons/ri";
 import { LabelColor } from "@/app/types/label";
-import { deleteSubtask, updateManualSubtaskStatus } from "@/app/lib/data";
+import { deleteSubtask, getSubtasksByParent, updateManualSubtaskStatus, updateSubtask } from "@/app/lib/data";
 import { useSWRConfig } from "swr";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { useSubtask } from "@/app/lib/hooks";
@@ -23,6 +23,22 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
     /* Do not render a whole subtask until it is fetched */
     if (error || subtask == undefined) { return <></> }
     if (isLoading) { return (<></>) }
+
+    const modifyPositioning = async () => {
+        /* Fix positioning before deleting subtask for good */
+        const subtasks = await getSubtasksByParent(client, subtask.parentTaskId);
+        const filteredSubtasks = subtasks
+            .filter((current) => current.subtaskId != subtask.subtaskId)
+            .sort((a, b) => a.rowPositionIndex - b.rowPositionIndex);
+
+        // Update row position indices for each subtask under parent
+        filteredSubtasks.map((subtask: Subtask, index: number) => {
+            subtask.rowPositionIndex = index;
+            updateSubtask(client, subtask);
+        });
+
+        console.log(filteredSubtasks);
+    };
 
     /* Button options for each type of subtask */
     const buttons = {
@@ -66,8 +82,9 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
             color: "text-white",
             title: "Delete subtask",
             icon: <CgTrash size={buttonSize} />,
-            onClick: (subtask: Subtask) => {
-                /* TODO: fix positioning when a subtask is being deleted!!!!! */
+            onClick: async (subtask: Subtask) => {
+                await modifyPositioning();
+                
                 deleteSubtask(client, subtask.subtaskId).then(() => {
                     mutate(`task-${subtask.parentTaskId}`); // seal the deal, mutation was made in the task
                     toast.success("Subtask deleted.");
