@@ -1,4 +1,5 @@
-import { Subtask, SubtaskState, SubtaskType, Task, TaskPriority } from "@/app/types/task";
+import { Subtask, SubtaskState, SubtaskType } from "@/app/types/subtask";
+import { Task, TaskPriority } from "@/app/types/task";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 /* Helper functions that capture data from tables in Supabase */
@@ -24,8 +25,8 @@ export async function getSubtask(client: SupabaseClient, subtaskId: number): Pro
         title: data.title,
         type: data.type,
         state: data.state,
-        rowPositionIndex: data.row_position_index,
-        nestedSubtasks: [] // TODO: implement later
+        duration: data.duration,
+        rowPositionIndex: data.row_position_index
     };
 }
 
@@ -72,14 +73,15 @@ export async function addTask(client: SupabaseClient, userId: number, title: str
     return task;
 }
 
-export async function updateSubtask(client: SupabaseClient, id: number, title: string, type: SubtaskType): Promise<boolean> {
+export async function updateSubtask(client: SupabaseClient, subtask: Subtask): Promise<boolean> {
     const res = await client
         .from("subtasks")
         .update({
-            title: title,
-            type: type
+            title: subtask.title,
+            type: subtask.type,
+            duration: subtask.duration
         })
-        .eq("id", id)
+        .eq("id", subtask.subtaskId);
 
     return !res.error;
 }
@@ -108,13 +110,12 @@ export async function updateTask(client: SupabaseClient, id: number, title: stri
     return !res.error;
 }
 
-export async function addSubtask(client: SupabaseClient, parentTaskId: number, title: string, type: SubtaskType, state: SubtaskState, rowPositionIndex: number): Promise<Subtask> {
+export async function addSubtask(client: SupabaseClient, parentTaskId: number, title: string, type: SubtaskType, state: SubtaskState, rowPositionIndex: number, duration?: number): Promise<Subtask> {
     const subtask: Subtask = {
         subtaskId: -1, // change this with ID found in response
         title: title,
         type: type,
         state: state,
-        nestedSubtasks: [],
         parentTaskId: parentTaskId,
         rowPositionIndex: rowPositionIndex
     };
@@ -126,13 +127,18 @@ export async function addSubtask(client: SupabaseClient, parentTaskId: number, t
             title: title,
             type: type,
             state: state,
-            row_position_index: rowPositionIndex,
-            nested_subtasks: []
+            duration: duration,
+            row_position_index: rowPositionIndex
         })
         .select()
         .single();
 
     subtask.subtaskId = data!.id;
+
+    // add duration to subtask object if it is timed
+    if (subtask.type == SubtaskType.Timed) {
+        subtask.duration = duration;
+    }
     return subtask;
 }
 
@@ -188,8 +194,7 @@ export async function getSubtasksByParent(client: SupabaseClient, taskId: number
             title: subtask.title,
             type: subtask.type,
             state: subtask.state,
-            rowPositionIndex: subtask.row_position_index,
-            nestedSubtasks: [] // TODO: implement later
+            rowPositionIndex: subtask.row_position_index
         }
     }));
 }

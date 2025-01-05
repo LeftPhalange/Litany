@@ -14,7 +14,8 @@ import { useSWRConfig } from "swr";
 import { Reorder } from "motion/react";
 import { getColorByPriority } from "@/app/lib/style";
 import { CgArrowsV, CgCheck, CgMathPlus, CgPen, CgTrash } from "react-icons/cg";
-import { SubtaskState, SubtaskType, Task, TaskPriority } from "../../../types/task";
+import { Task, TaskPriority } from "../../../types/task";
+import { SubtaskState, SubtaskType } from "@/app/types/subtask";
 
 export default function TaskPane({ task, navigationPaneOpened }: { task?: Task, navigationPaneOpened: boolean }) {
     return (
@@ -143,7 +144,7 @@ function TaskView({ task }: { task: Task }) {
     ) : <></>;
 
     return (
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col space-y-1 overflow-y-scroll h-full">
             {currentDialog}
             <div className="flex flex-col space-y-1 pt-8 px-8">
                 <Label title={data!.priority} color={getColorByPriority(data!.priority, false)} />
@@ -155,7 +156,7 @@ function TaskView({ task }: { task: Task }) {
                     {buttons.map((button) => <Button key={button.text} disabled={button.disabled} icon={button.icon} text={button.text} onClick={button.onClick} />)}
                 </div>
             </div>
-            <div className="flex flex-col space-y-2 transition-none">
+            <div className="flex flex-col">
                 {!subtasksExist ?
                     <span className="text-md px-8">No subtasks have been made yet.</span> : subtaskGroup
                 }
