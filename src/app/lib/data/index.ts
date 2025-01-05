@@ -79,7 +79,8 @@ export async function updateSubtask(client: SupabaseClient, subtask: Subtask): P
         .update({
             title: subtask.title,
             type: subtask.type,
-            duration: subtask.duration
+            duration: subtask.duration,
+            row_position_index: subtask.rowPositionIndex
         })
         .eq("id", subtask.subtaskId);
 
