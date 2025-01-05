@@ -1,6 +1,6 @@
 import { BorderColor } from "@/app/types/border";
 import { LabelColor } from "@/app/types/label";
-import { SubtaskType } from "@/app/types/task";
+import { SubtaskType } from "@/app/types/subtask";
 
 /* Styling functions for client-side components */
 
@@ -8,7 +8,6 @@ export function getColorByType(type: SubtaskType): string {
     const colorMap: Record<SubtaskType, string> = {
         manual: `${LabelColor.Blue}`,
         timed: `${LabelColor.Orange}`,
-        sequence: `${LabelColor.Purple}`,
         none: `${LabelColor.Neutral}`
     };
 

@@ -1,5 +1,5 @@
 import DialogBox from "@/app/components/generic/dialog";
-import { SubtaskType } from "@/app/types/task";
+import { SubtaskType } from "@/app/types/subtask";
 import { Button, Field, Fieldset, Input, Label, Select } from "@headlessui/react";
 import { useState } from "react";
 
@@ -40,7 +40,6 @@ export default function AddSubtask({ onClick, closeDialog, open }: { onClick: (s
                 <Select onChange={(e) => setSubtaskType(e.target.value as SubtaskType)} className="mt-1 block bg-white/10 py-1 pl-2 text-xs rounded-lg border border-1 border-neutral-700" name="task-type">
                     <option value={SubtaskType.Manual}>Manual</option>
                     <option value={SubtaskType.Timed}>Timed</option>
-                    <option value={SubtaskType.Sequence}>Sequence</option>
                 </Select>
             </Field>
             <div className="flex flex-row space-x-2 pt-2 w-full">

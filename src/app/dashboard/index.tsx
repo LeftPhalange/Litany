@@ -30,7 +30,7 @@ export default function Dashboard() {
         <div className="flex flex-col h-screen">
             <NavigationBar setNavigationPaneOpened={setNavigationPaneOpened} navigationPaneOpened={navigationPaneOpened} />
             <Toaster toastOptions={{ className: "text-sm font-bold", duration: 2000 }} />
-            <div className="flex flex-row h-full">
+            <div className="flex flex-row h-full overflow-y-auto">
                 <NavigationPane userId={userId} setTaskIndex={setTaskIndex} navigationPaneOpened={navigationPaneOpened} setNavigationPaneOpened={setNavigationPaneOpened} currentTaskIndex={taskIndex} />
                 <TaskView navigationPaneOpened={navigationPaneOpened} task={data![taskIndex]} />
             </div>
