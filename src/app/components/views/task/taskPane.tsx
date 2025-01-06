@@ -14,22 +14,28 @@ import { useSWRConfig } from "swr";
 import { Reorder } from "motion/react";
 import { getColorByPriority } from "@/app/lib/style";
 import { CgArrowsV, CgCheck, CgMathPlus, CgPen, CgTrash } from "react-icons/cg";
-import { SubtaskState, SubtaskType, Task, TaskPriority } from "../../../types/task";
+import { Task, TaskPriority } from "../../../types/task";
+import { Subtask, SubtaskState } from "@/app/types/subtask";
+import { User } from "@supabase/supabase-js";
 
-export default function TaskPane({ task, navigationPaneOpened }: { task?: Task, navigationPaneOpened: boolean }) {
+export default function TaskPane({ task, user, navigationPaneOpened }: {
+    task?: Task,
+    user: User,
+    navigationPaneOpened: boolean
+}) {
     return (
         <main className={`${navigationPaneOpened ? "hidden md:inline" : "inline"} bg-neutral-900 w-full h-full`}>
-            {task ? <TaskView task={task} /> : <HomePage />}
+            {task ? <TaskView task={task} /> : <HomePage user={user} />}
         </main>
     )
 }
 
-function HomePage() {
+function HomePage({user} : {user: User}) {
     return (
         <div className="flex">
             <div className="flex flex-row space-x-4 p-8">
                 <div className="flex flex-col space-y-0">
-                    <span className="text-xl font-bold">Welcome to Litany</span>
+                    <span className="text-xl font-bold">Welcome, {user?.email}!</span>
                     <span className="text-sm font-regular">Please choose a task to the left, or you can create one under Actions.</span>
                 </div>
             </div>
@@ -47,7 +53,6 @@ function TaskView({ task }: { task: Task }) {
     const [subtaskPositions, setSubtaskPositions] = useState<number[]>([]); // orders each subtask with its own index
 
     const { data, key, error, isLoading } = useTask(task.taskId, client);
-    console.log("rendering task " + task.taskId);
 
     if (!data || error || isLoading) { return (<></>) }
 
@@ -65,8 +70,8 @@ function TaskView({ task }: { task: Task }) {
             icon: <CgMathPlus size={16} />,
             disabled: false,
             onClick: () => {
-                setCurrentDialog(<AddSubtask open={true} onClick={async (subtaskTitle: string, subtaskType: SubtaskType) => {
-                    addSubtask(client, data!.taskId, subtaskTitle, subtaskType, SubtaskState.Incomplete, data!.subtasks.length).then(() => {
+                setCurrentDialog(<AddSubtask open={true} onClick={async (subtask: Subtask) => {
+                    addSubtask(client, task, subtask.title, subtask.type, SubtaskState.Incomplete, data!.subtasks.length, subtask.duration).then(() => {
                         mutate(key);
                         toast.success("Subtask added.");
                     });
@@ -78,8 +83,9 @@ function TaskView({ task }: { task: Task }) {
             icon: <CgPen size={16} />,
             disabled: false,
             onClick: () => {
-                setCurrentDialog(<EditTask task={data!} open={true} onClick={(id: number, title: string, description: string, priority: TaskPriority) => {
-                    updateTask(client, id, title, description, priority).then(() => {
+                setCurrentDialog(<EditTask task={data!} open={true} onClick={(title: string, description: string, priority: TaskPriority, id?: number) => {
+                    // id is asserted to have data, the onClick signature above is to help comply with typing from TaskDialog
+                    updateTask(client, id!, title, description, priority).then(() => {
                         mutate(key);
                         toast.success("Task edited.");
                     });
@@ -89,7 +95,7 @@ function TaskView({ task }: { task: Task }) {
         {
             text: rowsMovable ? "Done" : "Move subtasks",
             icon: (!rowsMovable ? <CgArrowsV size={16} /> : <CgCheck size={16} />),
-            disabled: !subtasksExist,
+            disabled: !subtasksExist || subtaskPositions.length == 1,
             onClick: () => {
                 // if rows are no longer movable after change state, save all row positions
                 setRowsMovable(!rowsMovable);
@@ -143,7 +149,7 @@ function TaskView({ task }: { task: Task }) {
     ) : <></>;
 
     return (
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col space-y-1 overflow-y-scroll h-full">
             {currentDialog}
             <div className="flex flex-col space-y-1 pt-8 px-8">
                 <Label title={data!.priority} color={getColorByPriority(data!.priority, false)} />
@@ -155,7 +161,7 @@ function TaskView({ task }: { task: Task }) {
                     {buttons.map((button) => <Button key={button.text} disabled={button.disabled} icon={button.icon} text={button.text} onClick={button.onClick} />)}
                 </div>
             </div>
-            <div className="flex flex-col space-y-2 transition-none">
+            <div className="flex flex-col">
                 {!subtasksExist ?
                     <span className="text-md px-8">No subtasks have been made yet.</span> : subtaskGroup
                 }

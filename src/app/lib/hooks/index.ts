@@ -32,7 +32,7 @@ export function useTask(id: number, client: SupabaseClient) {
     };
 }
 
-export function useTasks (userId: number, client: SupabaseClient) {
+export function useTasks (userId: string, client: SupabaseClient) {
     const key = "tasks";
     const { data, error, isLoading } = useSWR(key, () => getTasks(client, userId));
 

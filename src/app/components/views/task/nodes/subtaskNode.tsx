@@ -1,35 +1,55 @@
 import Label from "../ui/label";
-import ProgressBar from "../ui/progressBar";
 import toast from "react-hot-toast";
-import { Subtask, SubtaskType } from "@/app/types/task";
+import TimerSubview from "@/app/components/views/subtask/timed/timerSubview";
+import ManualSubview from "@/app/components/views/subtask/manual/manualSubview";
 import { getColorByType } from "@/app/lib/style";
-import { CgCheckO, CgMathPlus, CgPlayButton, CgPlayPause, CgTrash, CgPen } from "react-icons/cg";
-import { RiResetRightFill } from "react-icons/ri";
-import { LabelColor } from "@/app/types/label";
-import { deleteSubtask, updateManualSubtaskStatus } from "@/app/lib/data";
+import { CgCheckO, CgTrash, CgPen } from "react-icons/cg";
+import { deleteSubtask, getSubtasksByParent, updateManualSubtaskStatus, updateSubtask } from "@/app/lib/data";
 import { useSWRConfig } from "swr";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { useSubtask } from "@/app/lib/hooks";
 import { DragControls } from "motion/react";
 import { MdDragHandle } from "react-icons/md";
-import { PointerEvent } from "react";
+import { JSX, PointerEvent, useState } from "react";
+import { Subtask, SubtaskState, SubtaskType } from "@/app/types/subtask";
+import { RiResetLeftLine } from "react-icons/ri";
+import EditSubtask from "../../subtask/dialogs/editSubtask";
 
-const buttonSize = 20;
+const buttonSize = 18;
 
 export default function SubtaskNode({ client, subtask, positionIndex, controls, movable }: { client: SupabaseClient, subtask: Subtask, positionIndex: number, controls: DragControls | null, movable: boolean }) {
     const { mutate } = useSWRConfig();
     const { data, key, isLoading, error } = useSubtask(subtask.subtaskId, client);
 
+    /* States for SubtaskNode */
+    const [currentDialog, setCurrentDialog] = useState<JSX.Element | null>(null);
+
     /* Do not render a whole subtask until it is fetched */
     if (error || subtask == undefined) { return <></> }
     if (isLoading) { return (<></>) }
 
+    const updateSubtaskPositioning = async () => {
+        /* Fix positioning before deleting subtask for good */
+        // TODO: figure out a more efficient way to do this, we're currently updating all subtasks instead of the relevant ones
+        const subtasks = await getSubtasksByParent(client, subtask.parentTaskId);
+        const filteredSubtasks = subtasks
+            .filter((current) => current.subtaskId != subtask.subtaskId)
+            .sort((a, b) => a.rowPositionIndex - b.rowPositionIndex);
+
+        // Update row position indices for each subtask under parent
+        filteredSubtasks.map(async (subtask: Subtask, index: number) => {
+            subtask.rowPositionIndex = index;
+            console.log("");
+            await updateSubtask(client, subtask);
+        });
+    };
+
     /* Button options for each type of subtask */
     const buttons = {
         check: {
-            color: "text-white-600",
-            title: "Complete task",
-            icon: <CgCheckO className={data!.state == "complete" ? "text-green-600" : ""} size={buttonSize} />,
+            subclass: "text-white-600",
+            title: data!.state == "complete" ? "Reset progress" : "Complete subtask",
+            icon: data!.state == "complete" ? <RiResetLeftLine size={buttonSize} /> : <CgCheckO size={buttonSize} />,
             onClick: (subtask: Subtask) => {
                 const completed = data!.state == "complete";
                 updateManualSubtaskStatus(client, subtask.subtaskId, !completed).then(() => {
@@ -38,57 +58,49 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
                 });
             }
         },
-        addSubtask: {
-            color: "text-red-600",
-            title: "Add subtask",
-            icon: <CgMathPlus size={buttonSize} />,
-            onClick: async (subtask: Subtask) => { console.log(`${subtask.subtaskId} not updated`); }
-        },
-        startTimer: {
-            color: "text-orange-600",
-            title: "Start timer",
-            icon: <CgPlayButton size={buttonSize} />,
-            onClick: async (subtask: Subtask) => { console.log("no update on " + subtask.subtaskId); }
-        },
-        pauseTimer: {
-            color: "text-white",
-            title: "Pause timer",
-            icon: <CgPlayPause size={buttonSize} />,
-            onClick: async (subtask: Subtask) => { console.log("no update on " + subtask.subtaskId); }
-        },
-        resetProgress: {
-            color: "text-white",
-            title: "Reset subtask",
-            icon: <RiResetRightFill size={buttonSize} />,
-            onClick: async (subtask: Subtask) => { console.log("no update on " + subtask.subtaskId); }
-        },
         deleteSubtask: {
-            color: "text-white",
+            subclass: "text-white",
             title: "Delete subtask",
             icon: <CgTrash size={buttonSize} />,
-            onClick: (subtask: Subtask) => {
-                deleteSubtask(client, subtask.subtaskId).then(() => {
+            onClick: async (subtask: Subtask) => {
+                await updateSubtaskPositioning();
+                await deleteSubtask(client, subtask.subtaskId).then(() => {
                     mutate(`task-${subtask.parentTaskId}`); // seal the deal, mutation was made in the task
                     toast.success("Subtask deleted.");
                 });
             }
         },
         editSubtask: {
-            color: "text-white",
+            subclass: "text-white",
             title: "Edit subtask",
             icon: <CgPen size={buttonSize} />,
-            onClick: async (subtask: Subtask) => { console.log("no update on " + subtask.subtaskId); }
+            onClick: async () => {
+                const dialog = (
+                    <EditSubtask
+                        subtask={data!}
+                        onClick={(subtask: Subtask) => {
+                            updateSubtask(client, subtask).then(() => {
+                                mutate(key);
+                            });
+                        }}
+                        closeDialog={() => {
+                            setCurrentDialog(null);
+                        }}
+                        open={!currentDialog}
+                    />
+                );
+                setCurrentDialog(dialog);
+            }
         }
     }
 
     const options = {
         manual: [buttons.check, buttons.editSubtask, buttons.deleteSubtask],
-        timed: [buttons.check, buttons.startTimer, buttons.pauseTimer, buttons.resetProgress, buttons.deleteSubtask],
-        sequence: [buttons.check, buttons.addSubtask, buttons.deleteSubtask],
+        timed: [buttons.editSubtask, buttons.deleteSubtask],
         none: []
     }
 
-    function beginDrag (e: PointerEvent) {
+    function beginDrag(e: PointerEvent) {
         if (controls) { controls.start(e); }; // if not null, start drag
     }
 
@@ -97,29 +109,28 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
 
     return (
         <div className={`flex flex-col py-4 transition-none border-r border-b ${positionIndex == 0 && "border-t"} border-neutral-600 bg-neutral-800`}>
+            {currentDialog}
             <div className="flex flex-row px-4">
                 <div className="flex items-center pr-4">
                     {movable && <MdDragHandle size={24} onPointerDown={beginDrag} style={{ touchAction: "none" }} />}
                 </div>
-                <div className="flex flex-col w-full space-y-1">
+                <div className="flex flex-col w-full">
                     <div className="flex flex-row space-x-2">
                         <Label title={data!.type} color={labelColor} />
-                        {data!.state == "complete" && <Label title={`Completed`} color={`${LabelColor.Green}`} />}
+                        <Label title={data!.state == SubtaskState.Complete ? "Completed" : "Incomplete"} color={data!.state == SubtaskState.Complete ? "bg-green-700" : "bg-red-700"} />
                     </div>
                     <div className="flex flex-row select-none">
                         <div className="flex flex-col min-w-fit space-y-0">
-                            <span className="text-md font-semibold">{data!.title}</span>
-                            <span className="text-sm font-normal">{data!.state == "complete" ? "This subtask has been completed." : "No progress made yet."}</span>
+                            <span className="text-md font-semibold pt-1">{data!.title}</span>
+                            {type == "manual" &&
+                                <span className="text-sm font-normal">
+                                    {data!.state == "complete" ? "This subtask has been completed." : "No progress made yet."}
+                                </span>
+                            }
                         </div>
                     </div>
-                    {data!.type == "timed" && <ProgressBar percentage={100} />}
-                </div>
-                <div className="flex flex-row space-x-2 w-fit h-fit outline outline-1 outline-neutral-600 bg-black/20 rounded-full p-1 mr-2">
-                    {options[type].map((button, index: number) =>
-                        <button key={index} title={button.title} onClick={() => button.onClick(data!)} className={`hover:${button.color} p-2 rounded-full hover:bg-white/10 transition-all`}>
-                            {button.icon}
-                        </button>
-                    )}
+                    {type == "timed" && <TimerSubview subtask={data!} buttons={options.timed} toggleCompletion={() => { buttons.check.onClick(subtask); }} />}
+                    {type == "manual" && <ManualSubview subtask={data!} buttons={options.manual} />}
                 </div>
             </div>
         </div>

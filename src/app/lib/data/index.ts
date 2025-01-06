@@ -1,4 +1,5 @@
-import { Subtask, SubtaskState, SubtaskType, Task, TaskPriority } from "@/app/types/task";
+import { Subtask, SubtaskState, SubtaskType } from "@/app/types/subtask";
+import { Task, TaskPriority } from "@/app/types/task";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 /* Helper functions that capture data from tables in Supabase */
@@ -20,25 +21,28 @@ export async function getSubtask(client: SupabaseClient, subtaskId: number): Pro
 
     return {
         subtaskId: data.id,
+        userId: data.user_id,
         parentTaskId: data.parent_task_id,
         title: data.title,
         type: data.type,
         state: data.state,
-        rowPositionIndex: data.row_position_index,
-        nestedSubtasks: [] // TODO: implement later
+        duration: data.duration,
+        rowPositionIndex: data.row_position_index
     };
 }
 
-export async function getTasks(client: SupabaseClient, userId: number): Promise<Task[]> {
+export async function getTasks(client: SupabaseClient, userId: string): Promise<Task[]> {
     const { data } = await client
         .from("tasks")
         .select("*")
         .order('id', { ascending: true })
         .eq('user_id', userId);
+    
 
     return await Promise.all(data!.map(async (task) => {
         return {
             taskId: task.id,
+            userId: userId,
             title: task.title,
             description: task.task_description,
             priority: task.priority,
@@ -47,9 +51,10 @@ export async function getTasks(client: SupabaseClient, userId: number): Promise<
     }));
 }
 
-export async function addTask(client: SupabaseClient, userId: number, title: string, description: string, priority: TaskPriority): Promise<Task> {
+export async function addTask(client: SupabaseClient, userId: string, title: string, description: string, priority: TaskPriority): Promise<Task> {
     const task: Task = {
         taskId: -1, // change this with ID found in the response
+        userId: userId,
         title: title,
         description: description,
         priority: priority,
@@ -72,14 +77,16 @@ export async function addTask(client: SupabaseClient, userId: number, title: str
     return task;
 }
 
-export async function updateSubtask(client: SupabaseClient, id: number, title: string, type: SubtaskType): Promise<boolean> {
+export async function updateSubtask(client: SupabaseClient, subtask: Subtask): Promise<boolean> {
     const res = await client
         .from("subtasks")
         .update({
-            title: title,
-            type: type
+            title: subtask.title,
+            type: subtask.type,
+            duration: subtask.duration,
+            row_position_index: subtask.rowPositionIndex
         })
-        .eq("id", id)
+        .eq("id", subtask.subtaskId);
 
     return !res.error;
 }
@@ -108,31 +115,38 @@ export async function updateTask(client: SupabaseClient, id: number, title: stri
     return !res.error;
 }
 
-export async function addSubtask(client: SupabaseClient, parentTaskId: number, title: string, type: SubtaskType, state: SubtaskState, rowPositionIndex: number): Promise<Subtask> {
+export async function addSubtask(client: SupabaseClient, parentTask: Task, title: string, type: SubtaskType, state: SubtaskState, rowPositionIndex: number, duration?: number): Promise<Subtask> {
     const subtask: Subtask = {
         subtaskId: -1, // change this with ID found in response
+        userId: parentTask.userId,
         title: title,
         type: type,
         state: state,
-        nestedSubtasks: [],
-        parentTaskId: parentTaskId,
+        duration: duration,
+        parentTaskId: parentTask.taskId,
         rowPositionIndex: rowPositionIndex
     };
 
     const { data } = await client
         .from("subtasks")
         .insert({
-            parent_task_id: parentTaskId,
-            title: title,
-            type: type,
-            state: state,
-            row_position_index: rowPositionIndex,
-            nested_subtasks: []
+            parent_task_id: subtask.parentTaskId,
+            user_id: subtask.userId,
+            title: subtask.title,
+            type: subtask.type,
+            state: subtask.state,
+            duration: subtask.duration ?? -1,
+            row_position_index: subtask.rowPositionIndex
         })
         .select()
         .single();
 
     subtask.subtaskId = data!.id;
+
+    // add duration to subtask object if it is timed
+    if (subtask.type == SubtaskType.Timed) {
+        subtask.duration = duration;
+    }
     return subtask;
 }
 
@@ -141,7 +155,21 @@ export async function deleteSubtask(client: SupabaseClient, subtaskId: number): 
 }
 
 export async function deleteTask(client: SupabaseClient, taskId: number): Promise<boolean> {
-    return deleteFromTable(client, "tasks", taskId);
+    // delete task then associated subtasks under parent task ID
+    const [deleteTaskRes, deleteSubtasksRes] = await Promise.all([
+        deleteFromTable(client, "tasks", taskId),
+        deleteSubtasksUnderTask(client, taskId)
+    ]);
+    return deleteTaskRes && deleteSubtasksRes;
+}
+
+export async function deleteSubtasksUnderTask(client: SupabaseClient, id: number): Promise<boolean> {
+    const res = await client
+        .from("subtasks")
+        .delete()
+        .eq("parent_task_id", id);
+
+    return !res.error;
 }
 
 export async function deleteFromTable(client: SupabaseClient, tableName: string, id: number): Promise<boolean> {
@@ -162,6 +190,7 @@ export async function getTask(client: SupabaseClient, taskId: number): Promise<T
 
     return {
         taskId: data.id,
+        userId: data.userId,
         title: data.title,
         description: data!.task_description,
         priority: data!.priority,
@@ -184,12 +213,12 @@ export async function getSubtasksByParent(client: SupabaseClient, taskId: number
     return await Promise.all(data!.map((subtask) => {
         return {
             subtaskId: subtask.id,
+            userId: subtask.userId,
             parentTaskId: subtask.parent_task_id,
             title: subtask.title,
             type: subtask.type,
             state: subtask.state,
-            rowPositionIndex: subtask.row_position_index,
-            nestedSubtasks: [] // TODO: implement later
+            rowPositionIndex: subtask.row_position_index
         }
     }));
 }

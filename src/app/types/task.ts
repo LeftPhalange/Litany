@@ -1,4 +1,6 @@
-/* Typing for tasks and subtasks */
+/* Typing for tasks */
+
+import { Subtask } from "./subtask";
 
 export enum TaskPriority {
     Low = "low",
@@ -7,39 +9,11 @@ export enum TaskPriority {
     None = "none"
 };
 
-export enum SubtaskType {
-    Manual = "manual",
-    Timed = "timed",
-    Sequence = "sequence",
-    None = "none"
-};
-
-export enum SubtaskState {
-    Complete = "complete",
-    Incomplete = "incomplete"
-};
-
 export type Task = {
+    userId: string,
     taskId: number
     title: string,
     description: string,
     priority: TaskPriority,
     subtasks: Subtask[],
-};
-
-export type SubtaskParent = {
-    parentTaskId: string,
-    subtaskId?: string,
-    type: string
-};
-
-export type Subtask = {
-    subtaskId: number,
-    parentTaskId: number,
-    parentSubtaskId?: number,
-    rowPositionIndex: number,
-    title: string,
-    type: SubtaskType,
-    state: SubtaskState,
-    nestedSubtasks: Subtask[]
 };

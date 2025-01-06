@@ -1,5 +1,5 @@
 import SubtaskNode from "./subtaskNode";
-import { Subtask } from "@/app/types/task";
+import { Subtask } from "@/app/types/subtask";
 import { Reorder, useDragControls } from "motion/react";
 import { SupabaseClient } from "@supabase/supabase-js";
 
