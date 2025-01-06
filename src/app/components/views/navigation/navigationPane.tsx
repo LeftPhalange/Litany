@@ -11,7 +11,7 @@ import AddTask from "./dialogs/addTask";
 import { useSWRConfig } from "swr";
 
 export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex, navigationPaneOpened, setNavigationPaneOpened }: {
-    userId: number,
+    userId: string,
     currentTaskIndex: number,
     setTaskIndex: Dispatch<SetStateAction<number>>,
     navigationPaneOpened: boolean,

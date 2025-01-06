@@ -10,6 +10,7 @@ export enum TaskPriority {
 };
 
 export type Task = {
+    userId: string,
     taskId: number
     title: string,
     description: string,

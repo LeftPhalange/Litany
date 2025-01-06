@@ -15,6 +15,7 @@ export type SubtaskParent = {
 
 export type Subtask = {
     subtaskId: number,
+    userId: string,
     parentTaskId: number,
     rowPositionIndex: number,
     title: string,

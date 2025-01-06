@@ -16,21 +16,26 @@ import { getColorByPriority } from "@/app/lib/style";
 import { CgArrowsV, CgCheck, CgMathPlus, CgPen, CgTrash } from "react-icons/cg";
 import { Task, TaskPriority } from "../../../types/task";
 import { SubtaskState, SubtaskType } from "@/app/types/subtask";
+import { User } from "@supabase/supabase-js";
 
-export default function TaskPane({ task, navigationPaneOpened }: { task?: Task, navigationPaneOpened: boolean }) {
+export default function TaskPane({ task, user, navigationPaneOpened }: {
+    task?: Task,
+    user: User,
+    navigationPaneOpened: boolean
+}) {
     return (
         <main className={`${navigationPaneOpened ? "hidden md:inline" : "inline"} bg-neutral-900 w-full h-full`}>
-            {task ? <TaskView task={task} /> : <HomePage />}
+            {task ? <TaskView task={task} /> : <HomePage user={user} />}
         </main>
     )
 }
 
-function HomePage() {
+function HomePage({user} : {user: User}) {
     return (
         <div className="flex">
             <div className="flex flex-row space-x-4 p-8">
                 <div className="flex flex-col space-y-0">
-                    <span className="text-xl font-bold">Welcome to Litany</span>
+                    <span className="text-xl font-bold">Welcome, {user?.email}!</span>
                     <span className="text-sm font-regular">Please choose a task to the left, or you can create one under Actions.</span>
                 </div>
             </div>
@@ -66,7 +71,7 @@ function TaskView({ task }: { task: Task }) {
             disabled: false,
             onClick: () => {
                 setCurrentDialog(<AddSubtask open={true} onClick={async (subtaskTitle: string, subtaskType: SubtaskType) => {
-                    addSubtask(client, data!.taskId, subtaskTitle, subtaskType, SubtaskState.Incomplete, data!.subtasks.length).then(() => {
+                    addSubtask(client, task, subtaskTitle, subtaskType, SubtaskState.Incomplete, data!.subtasks.length).then(() => {
                         mutate(key);
                         toast.success("Subtask added.");
                     });
