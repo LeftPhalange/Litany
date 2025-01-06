@@ -9,6 +9,7 @@ import { useTasks } from "@/app/lib/hooks";
 import { addTask } from "@/app/lib/data";
 import AddTask from "./dialogs/addTask";
 import { useSWRConfig } from "swr";
+import { redirect } from "next/navigation";
 
 export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex, navigationPaneOpened, setNavigationPaneOpened }: {
     userId: string,
@@ -32,7 +33,7 @@ export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex,
             color: "border-purple-600",
             onClick: () => {
                 const dialog = <AddTask client={client} addTask={(title: string, description: string, priority: TaskPriority) => {
-                    addTask (client, userId, title, description, priority).then(async () => {
+                    addTask(client, userId, title, description, priority).then(async () => {
                         mutate(key).then(() => setTaskIndex(data!.length));
                     });
                 }} closeDialog={() => {
@@ -40,6 +41,14 @@ export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex,
                     mutate(key);
                 }} open={true} />
                 setCurrentDialog(dialog);
+            }
+        },
+        {
+            key: "log-out",
+            title: "🔐 Sign out",
+            color: "border-purple-600",
+            onClick: () => {
+                client.auth.signOut().then((redirect("/auth")));
             }
         }
     ]
