@@ -12,7 +12,7 @@ Subtasks help break down the tasks into smaller steps, as mentioned. The followi
 - Timed: Timeboxing option where there is a timer specified, and completion of timer constitutes success.
 
 ## Roadmap items
-- Authentication. Right now, a user ID is assigned under the hood. Because of this, this release is designed to work with a single user.
+- More robust authentication with identity providers (i.e. Apple, Google, GitHub, etc). Sign in through e-mail is temporary.
 - More comprehensive home page that shows tasks and/or subtasks that should be completed, as well as material to enable end users to work with Litany.
 
 ## Credits
