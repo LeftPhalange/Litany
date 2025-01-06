@@ -7,15 +7,16 @@ import { useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { createClient } from "../lib/supabase/client";
 import { useTasks } from "../lib/hooks";
+import { User } from "@supabase/supabase-js";
 
-export default function Dashboard() {
+export default function Dashboard({ user } : { user: User }) {
     /* States for dashboard */
     const [ navigationPaneOpened, setNavigationPaneOpened ] = useState<boolean>(false); // only for breakpoints smaller than medium in Tailwind
     const [taskIndex, setTaskIndex] = useState<number>(-1);
 
     const client = createClient();
 
-    const userId = 0;
+    const userId: string = user.id;
     const { data, isLoading, error } = useTasks(userId, client);
 
     if (!data || error || isLoading) return <></>;
@@ -32,7 +33,7 @@ export default function Dashboard() {
             <Toaster toastOptions={{ className: "text-sm font-bold", duration: 2000 }} />
             <div className="flex flex-row h-full overflow-y-auto">
                 <NavigationPane userId={userId} setTaskIndex={setTaskIndex} navigationPaneOpened={navigationPaneOpened} setNavigationPaneOpened={setNavigationPaneOpened} currentTaskIndex={taskIndex} />
-                <TaskView navigationPaneOpened={navigationPaneOpened} task={data![taskIndex]} />
+                <TaskView navigationPaneOpened={navigationPaneOpened} user={user} task={data![taskIndex]} />
             </div>
         </div>
     );

@@ -1,9 +1,14 @@
 "use client";
 
-import { Button, Fieldset, Input, Label } from "@headlessui/react";
+import { Fieldset, Input, Label } from "@headlessui/react";
 import { motion } from "motion/react";
 import Image from "next/image";
 import { useState } from "react";
+import { login, register } from "./actions";
+
+/* Fields to help validate passwords */
+// const MIN_PW_LENGTH = 6;
+// const MAX_PW_LENGTH = 128;
 
 export default function AuthenticationPage() {
     return (
@@ -15,7 +20,23 @@ export default function AuthenticationPage() {
     )
 }
 
+enum AuthState {
+    Login,
+    Register
+};
+
 function AuthenticationBox() {
+    /* Client-side states for authentication box */
+    const [authState, setAuthState] = useState<AuthState>(AuthState.Login);
+    // const [statusMessage, setStatusMessage] = useState<string>("");
+    // const [emailAddress, setEmailAddress] = useState<string>("");
+    // const [password, setPassword] = useState<string>("");
+
+    /* credential validation below, e-mail regex from emailregex.com */
+    // const emailRegex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    // const isEmailValid = emailRegex.test(emailAddress);
+    // const isPasswordValid = password.length >= MIN_PW_LENGTH && password.length <= MAX_PW_LENGTH;
+
     return (
         <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1.0, opacity: 1.0 }} transition={{ duration: 0.25 }}>
             <div className={"bg-gradient-to-r from-indigo-600 to-cyan-600 rounded-xl shadow-2xl shadow-cyan-700 p-1"}>
@@ -30,22 +51,24 @@ function AuthenticationBox() {
                         <div className="flex flex-col space-y-1">
                             <span className="text-sm text-center break-words">To get started, please sign in or register below. </span>
                             <div className="flex flex-row justify-center">
-                                <TabGroup />
+                                <TabGroup setAuthState={setAuthState} />
                             </div>
                         </div>
-                        <Fieldset className="text-left space-y-2">
-                            <div className="flex flex-col space-y-1">
-                                <Label className="text-sm">E-mail address</Label>
-                                <Input className="block rounded-md bg-neutral-800 text-white text-sm pl-2 py-1"></Input>
-                            </div>
-                            <div className="flex flex-col space-y-1">
-                                <Label className="text-sm">Password</Label>
-                                <Input className="block rounded-md bg-neutral-800 text-white text-sm pl-2 py-1"></Input>
-                            </div>
-                        </Fieldset>
-                        <Button className="py-2 px-8 rounded-md bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-sky-500 hover:to-indigo-500 transition-all text-sm font-bold">
-                            Log in
-                        </Button>
+                        <form>
+                            <Fieldset className="flex flex-col text-left space-y-2">
+                                <div className="flex flex-col space-y-1">
+                                    <Label className="text-sm">E-mail address</Label>
+                                    <Input id="email" name="email" className="block rounded-md bg-neutral-800 text-white text-sm pl-2 py-1" type="email" required />
+                                </div>
+                                <div className="flex flex-col space-y-1">
+                                    <Label className="text-sm">Password</Label>
+                                    <Input id="password" name="password" className="block rounded-md bg-neutral-800 text-white text-sm pl-2 py-1" type="password" required></Input>
+                                </div>
+                            </Fieldset>
+                            <button formAction={authState == AuthState.Login ? login : register} className={`block w-full mt-4 py-2 px-8 rounded-lg border border-1 ${authState == AuthState.Login ? "bg-sky-600 hover:bg-sky-500 border-sky-400" : "bg-indigo-600 hover:bg-indigo-500 border-indigo-400"} transition-all text-sm font-bold`}>
+                                {authState == AuthState.Login ? "Log in" : "Register"}
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -53,12 +76,16 @@ function AuthenticationBox() {
     );
 }
 
-function TabGroup() {
+function TabGroup({ setAuthState }: { setAuthState: (state: AuthState) => void }) {
     const [selectedTab, setSelectedTab] = useState(0);
+    const changeTab = (state: AuthState) => {
+        setSelectedTab(state);
+        setAuthState(state);
+    };
     return (
         <div className="flex flex-row bg-white/15 rounded-xl space-x-2 p-1 w-fit justify-center">
-            <Tab title={"Sign in"} selected={selectedTab == 0} onClick={() => setSelectedTab(0)} />
-            <Tab title={"Register"} selected={selectedTab == 1} onClick={() => setSelectedTab(1)} />
+            <Tab title={"Sign in"} selected={selectedTab == AuthState.Login} onClick={() => changeTab(AuthState.Login)} />
+            <Tab title={"Register"} selected={selectedTab == AuthState.Register} onClick={() => changeTab(AuthState.Register)} />
         </div>
     );
 }
