@@ -77,7 +77,6 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
             onClick: async () => {
                 const dialog = (
                     <EditSubtask
-                        client={client}
                         subtask={data!}
                         onClick={(subtask: Subtask) => {
                             updateSubtask(client, subtask).then(() => {
@@ -118,7 +117,7 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
                 <div className="flex flex-col w-full">
                     <div className="flex flex-row space-x-2">
                         <Label title={data!.type} color={labelColor} />
-                        <Label title={data!.state} color={data!.state == SubtaskState.Complete ? "bg-green-600" : "bg-red-600"} />
+                        <Label title={data!.state == SubtaskState.Complete ? "Completed" : "Incomplete"} color={data!.state == SubtaskState.Complete ? "bg-green-700" : "bg-red-700"} />
                     </div>
                     <div className="flex flex-row select-none">
                         <div className="flex flex-col min-w-fit space-y-0">

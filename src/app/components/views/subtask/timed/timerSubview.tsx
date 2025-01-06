@@ -49,7 +49,7 @@ export default function TimerSubview({
             timeString += `${minutes} ${unit}, `;
         }
 
-        if (seconds > 0) {
+        if (seconds >= 0) {
             const unit = seconds == 1 ? "second" : "seconds";
             timeString += `${seconds} ${unit} remaining`;
         }
