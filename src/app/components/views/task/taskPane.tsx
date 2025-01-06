@@ -15,7 +15,7 @@ import { Reorder } from "motion/react";
 import { getColorByPriority } from "@/app/lib/style";
 import { CgArrowsV, CgCheck, CgMathPlus, CgPen, CgTrash } from "react-icons/cg";
 import { Task, TaskPriority } from "../../../types/task";
-import { SubtaskState, SubtaskType } from "@/app/types/subtask";
+import { Subtask, SubtaskState } from "@/app/types/subtask";
 import { User } from "@supabase/supabase-js";
 
 export default function TaskPane({ task, user, navigationPaneOpened }: {
@@ -70,8 +70,8 @@ function TaskView({ task }: { task: Task }) {
             icon: <CgMathPlus size={16} />,
             disabled: false,
             onClick: () => {
-                setCurrentDialog(<AddSubtask open={true} onClick={async (subtaskTitle: string, subtaskType: SubtaskType) => {
-                    addSubtask(client, task, subtaskTitle, subtaskType, SubtaskState.Incomplete, data!.subtasks.length).then(() => {
+                setCurrentDialog(<AddSubtask open={true} onClick={async (subtask: Subtask) => {
+                    addSubtask(client, task, subtask.title, subtask.type, SubtaskState.Incomplete, data!.subtasks.length, subtask.duration).then(() => {
                         mutate(key);
                         toast.success("Subtask added.");
                     });
@@ -83,8 +83,9 @@ function TaskView({ task }: { task: Task }) {
             icon: <CgPen size={16} />,
             disabled: false,
             onClick: () => {
-                setCurrentDialog(<EditTask task={data!} open={true} onClick={(id: number, title: string, description: string, priority: TaskPriority) => {
-                    updateTask(client, id, title, description, priority).then(() => {
+                setCurrentDialog(<EditTask task={data!} open={true} onClick={(title: string, description: string, priority: TaskPriority, id?: number) => {
+                    // id is asserted to have data, the onClick signature above is to help comply with typing from TaskDialog
+                    updateTask(client, id!, title, description, priority).then(() => {
                         mutate(key);
                         toast.success("Task edited.");
                     });
