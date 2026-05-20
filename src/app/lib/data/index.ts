@@ -68,7 +68,6 @@ export async function addTask(client: SupabaseClient, userId: string, title: str
             title: task.title,
             task_description: task.description,
             priority: task.priority,
-            subtask_ids: []
         })
         .select("id")
         .single();
