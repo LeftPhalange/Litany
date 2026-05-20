@@ -108,7 +108,7 @@ export default function SubtaskNode({ client, subtask, positionIndex, controls, 
     const type: SubtaskType = data!.type;
 
     return (
-        <div className={`flex flex-col py-4 transition-none border-r border-b ${positionIndex == 0 && "border-t"} border-neutral-600 bg-neutral-800`}>
+        <div className={`flex flex-col w-full py-4 transition-none border-r border-b ${positionIndex == 0 && "border-t"} border-neutral-600 bg-neutral-800`}>
             {currentDialog}
             <div className="flex flex-row px-4">
                 <div className="flex items-center pr-4">

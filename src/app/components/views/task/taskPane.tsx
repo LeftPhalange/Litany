@@ -24,7 +24,7 @@ export default function TaskPane({ task, user, navigationPaneOpened }: {
     navigationPaneOpened: boolean
 }) {
     return (
-        <main className={`${navigationPaneOpened ? "hidden md:flex" : "flex"} flex-1 min-w-0 bg-neutral-900 h-full`}>
+        <main className={`${navigationPaneOpened ? "hidden md:flex" : "flex"} flex-col w-full min-w-0 bg-neutral-900 h-full`}>
             {task ? <TaskView task={task} /> : <HomePage user={user} />}
         </main>
     )
@@ -150,7 +150,7 @@ function TaskView({ task }: { task: Task }) {
     ) : <></>;
 
     return (
-        <div className="flex flex-col space-y-1 overflow-y-scroll h-full">
+        <div className="flex flex-col w-full space-y-1 overflow-y-scroll h-full">
             {currentDialog}
             <div className="flex flex-col space-y-1 pt-8 px-8">
                 <Label title={data!.priority} color={getColorByPriority(data!.priority, false)} />

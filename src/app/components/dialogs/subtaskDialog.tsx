@@ -25,7 +25,7 @@ export default function SubtaskDialog({ subtask, title, onClick, closeDialog, op
     const [statusMessage, setStatusMessage] = useState("");
     const [subtaskTitle, setSubtaskTitle] = useState(subtask.subtaskId <= -1 ? "" : subtask.title);
     const [subtaskType, setSubtaskType] = useState(subtask.subtaskId <= -1 ? SubtaskType.Manual : subtask.type); // manual is default
-    const [timerDuration, setTimerDuration] = useState<SubtaskDuration>(subtask.duration ?
+    const [timerDuration, setTimerDuration] = useState<SubtaskDuration>(subtask.duration && subtask.duration > 0 ?
         getTimeFromSeconds(subtask.duration) : {
             hours: 0,
             minutes: 0,
