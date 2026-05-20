@@ -190,7 +190,7 @@ export async function getTask(client: SupabaseClient, taskId: number): Promise<T
 
     return {
         taskId: data.id,
-        userId: data.userId,
+        userId: data.user_id,
         title: data.title,
         description: data!.task_description,
         priority: data!.priority,
@@ -213,7 +213,7 @@ export async function getSubtasksByParent(client: SupabaseClient, taskId: number
     return await Promise.all(data!.map((subtask) => {
         return {
             subtaskId: subtask.id,
-            userId: subtask.userId,
+            userId: subtask.user_id,
             parentTaskId: subtask.parent_task_id,
             title: subtask.title,
             type: subtask.type,

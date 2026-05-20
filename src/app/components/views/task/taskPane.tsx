@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import DeleteTask from "./dialogs/deleteTask";
 import MoveableSubtaskNode from "./nodes/moveableSubtaskNode";
 import SubtaskNode from "./nodes/subtaskNode";
-import { JSX, useState } from "react";
+import { JSX, useEffect, useMemo, useState } from "react";
 import { addSubtask, deleteTask, updateSubtaskRowPosition, updateTask } from "@/app/lib/data";
 import { createClient } from "@/app/lib/supabase/client";
 import { useTask } from "@/app/lib/hooks";
@@ -44,7 +44,7 @@ function HomePage({user} : {user: User}) {
 }
 
 function TaskView({ task }: { task: Task }) {
-    const client = createClient();
+    const client = useMemo(() => createClient(), []);
     const { mutate } = useSWRConfig();
 
     /* States for TaskView */
@@ -54,12 +54,13 @@ function TaskView({ task }: { task: Task }) {
 
     const { data, key, error, isLoading } = useTask(task.taskId, client);
 
-    if (!data || error || isLoading) { return (<></>) }
+    useEffect(() => {
+        if (data) {
+            setSubtaskPositions(data.subtasks.map((subtask: Subtask) => subtask.rowPositionIndex));
+        }
+    }, [data?.subtasks.length]);
 
-    // initialize subtask positions state 
-    if (data && data.subtasks.length != subtaskPositions.length) {
-        setSubtaskPositions(data.subtasks.map((subtask) => subtask.rowPositionIndex));
-    }
+    if (!data || error || isLoading) { return (<></>) }
 
     const subtasksExist = subtaskPositions.length > 0;
 

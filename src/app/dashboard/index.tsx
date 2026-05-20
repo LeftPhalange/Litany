@@ -3,7 +3,7 @@
 import NavigationBar from "../components/views/navigation/navigationBar";
 import NavigationPane from "../components/views/navigation/navigationPane";
 import TaskView from "../components/views/task/taskPane";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { createClient } from "../lib/supabase/client";
 import { useTasks } from "../lib/hooks";
@@ -14,18 +14,21 @@ export default function Dashboard({ user } : { user: User }) {
     const [ navigationPaneOpened, setNavigationPaneOpened ] = useState<boolean>(false); // only for breakpoints smaller than medium in Tailwind
     const [taskIndex, setTaskIndex] = useState<number>(-1);
 
-    const client = createClient();
+    const client = useMemo(() => createClient(), []);
 
     const userId: string = user.id;
     const { data, isLoading, error } = useTasks(userId, client);
 
-    if (!data || error || isLoading) return <></>;
+    useEffect(() => {
+        if (!data) return;
+        if (data.length === 0 && taskIndex !== -1) {
+            setTaskIndex(-1);
+        } else if (taskIndex === data.length) {
+            setTaskIndex(taskIndex - 1);
+        }
+    }, [data, taskIndex]);
 
-    // if no tasks were found, the only task was likely deleted and we can go back
-    if (data!.length == 0 && taskIndex != -1) { setTaskIndex(-1); }
-    
-    // go back to the previous task if the last task in the list deleted
-    if (taskIndex == data!.length) { setTaskIndex(taskIndex - 1); }
+    if (!data || error || isLoading) return <></>;
 
     return (
         <div className="flex flex-col h-screen">

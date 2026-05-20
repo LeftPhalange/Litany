@@ -3,13 +3,13 @@
 import PaneNode from "./paneNode";
 import TaskPaneNode from "./taskPaneNode";
 import { Task, TaskPriority } from "@/app/types/task";
-import { Dispatch, JSX, SetStateAction, useState } from "react";
+import { Dispatch, JSX, SetStateAction, useMemo, useState } from "react";
 import { createClient } from "@/app/lib/supabase/client";
 import { useTasks } from "@/app/lib/hooks";
 import { addTask } from "@/app/lib/data";
 import AddTask from "./dialogs/addTask";
 import { useSWRConfig } from "swr";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex, navigationPaneOpened, setNavigationPaneOpened }: {
     userId: string,
@@ -18,7 +18,8 @@ export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex,
     navigationPaneOpened: boolean,
     setNavigationPaneOpened: Dispatch<SetStateAction<boolean>>
 }) {
-    const client = createClient();
+    const router = useRouter();
+    const client = useMemo(() => createClient(), []);
     const { mutate } = useSWRConfig();
     const { data, key } = useTasks(userId, client);
 
@@ -48,7 +49,7 @@ export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex,
             title: "🔐 Sign out",
             color: "border-purple-600",
             onClick: () => {
-                client.auth.signOut().then((redirect("/auth")));
+                client.auth.signOut().then(() => router.push("/auth"));
             }
         }
     ]
@@ -61,7 +62,7 @@ export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex,
             {actions.map((action) => <PaneNode key={action.key} title={action.title} color={action.color} selected={false} onClick={action.onClick} />)}
             <span className="pt-4 pb-2 pl-4 text-xs font-medium uppercase">Tasks</span>
             {data!.map((task: Task, index: number) =>
-                <TaskPaneNode task={task} key={task.title} selected={index == currentTaskIndex} onClick={() => {
+                <TaskPaneNode task={task} key={task.taskId} selected={index == currentTaskIndex} onClick={() => {
                     if (index != currentTaskIndex) {
                         setTaskIndex(index);
                     }

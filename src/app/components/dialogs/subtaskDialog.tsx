@@ -59,7 +59,7 @@ export default function SubtaskDialog({ subtask, title, onClick, closeDialog, op
                     userId: subtask.userId,
                     title: subtaskTitle,
                     type: subtaskType,
-                    duration: subtask.type == SubtaskType.Timed ? totalSeconds : undefined,
+                    duration: subtaskType == SubtaskType.Timed ? totalSeconds : undefined,
                     state: subtask.state,
                     rowPositionIndex: subtask.rowPositionIndex
                 };
