@@ -24,7 +24,7 @@ export default function TaskPane({ task, user, navigationPaneOpened }: {
     navigationPaneOpened: boolean
 }) {
     return (
-        <main className={`${navigationPaneOpened ? "hidden md:inline" : "inline"} bg-neutral-900 w-full h-full`}>
+        <main className={`${navigationPaneOpened ? "hidden md:flex" : "flex"} flex-1 min-w-0 bg-neutral-900 h-full`}>
             {task ? <TaskView task={task} /> : <HomePage user={user} />}
         </main>
     )

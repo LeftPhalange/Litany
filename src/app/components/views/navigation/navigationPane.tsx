@@ -11,12 +11,13 @@ import AddTask from "./dialogs/addTask";
 import { useSWRConfig } from "swr";
 import { useRouter } from "next/navigation";
 
-export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex, navigationPaneOpened, setNavigationPaneOpened }: {
+export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex, navigationPaneOpened, setNavigationPaneOpened, paneWidth }: {
     userId: string,
     currentTaskIndex: number,
     setTaskIndex: Dispatch<SetStateAction<number>>,
     navigationPaneOpened: boolean,
-    setNavigationPaneOpened: Dispatch<SetStateAction<boolean>>
+    setNavigationPaneOpened: Dispatch<SetStateAction<boolean>>,
+    paneWidth: number
 }) {
     const router = useRouter();
     const client = useMemo(() => createClient(), []);
@@ -54,7 +55,7 @@ export default function NavigationPane({ userId, currentTaskIndex, setTaskIndex,
         }
     ]
     return (
-        <div className={`${!navigationPaneOpened ? "hidden md:flex" : "flex w-full md:w-fit"} flex-col border-r border-neutral-700 bg-neutral-900/80 h-full min-w-6xl`}>
+        <div style={!navigationPaneOpened ? { width: paneWidth, flexShrink: 0 } : undefined} className={`${!navigationPaneOpened ? "hidden md:flex" : "flex w-full"} flex-col border-r border-neutral-700 bg-neutral-900/80 h-full`}>
             {currentDialog}
             <PaneNode title={"🏡 Home"} color={"border-sky-600"} selected={currentTaskIndex == -1} onClick={() => { setTaskIndex(-1); setNavigationPaneOpened(false); }} />
             {/* TODO: For the span subheadings, they will need to be put into a generic "label" component limited to the navigation pane */}
